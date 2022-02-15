@@ -1,0 +1,341 @@
+# 1. 2월 15일 (Day 19) 강의 정리
+
+### (4강) Docker
+
+1. Docker 소개
+
+   1.1 가상화란?
+
+   - 개발할 때, 서비스 운영에 사용하는 서버에 직접 들어가서 개발하지 않음 (e.g. branch)
+   - Local 환경에서 개발하고, 완료되면 Staging 서버, Production 서버에 배포
+   - 개발을 진행한 Local 환경과 Production 서버 환경이 다른 경우 OS가 다르기 때문에 라이브러리, 파이썬 등 설치할 때 다르게 진행해야 함
+     - Ex) Local 환경은 윈도우, 서버 환경은 Linux
+   - Local 환경과 서버가 같은 OS를 사용해도, 서버에서 올바르게 작동하지 않을 수 있음
+     - Ex) Local의 환경 변수, Production 서버의 환경 변수(Env), Production 서버의 사용자 그룹, Permission
+
+   - 다양한 설정을 README 등에 기록하고, 항상 실행하도록 하는 방법 고려
+     - 사람이 진행하는 일이라 Human Error 발생
+     - 매번 이런 작업을 해야 하는 과정이 귀찮음
+   - 운영하고 있는 Server가 100대라면?
+     - 특정 서버 업데이트가 진행되었다면(윈도우, 스마트폰 OS 자동 업데이트 실행) => 나머지 서버에도 모두 접속해 업데이트 필요
+   - 이 부분에서 생기는 고민 : 서버 환경까지도 모두 한번에 소프트웨어화 할 수 없을까?
+   - 이런 고민을 해결하기 위해 나온 개념이 "가상화" (엄밀하게는 하드웨어 가상화 등 더 넓은 개념이지만, 여기선 소프트웨어 가상화로 한정)
+   - 가상화는 Research / Production 환경에서 공통적으로 사용하는 일종의 템플릿
+   - 특정 소프트웨어 환경을 만들고, Local, Production 서버에서 그대로 활용
+     - 개발(Local)과 운영(Production) 서버의 환경 불일치가 해소
+     - 어느 환경에서나 동일한 환경으로 프로그램을 실행할 수 있음
+     - 개발 외에 Research도 동일한 환경을 사용할 수 있음
+
+   1.2 Docker 등장하기 전
+
+   ![VM-Architecture](https://img.vembu.com/wp-content/uploads/2019/02/VM-vs-Containers_02.png)
+
+   - 가상화 기술로 주로 VM(Virtual Machine)을 사용
+     - VM은 호스트 머신이라고 하는 실제 물리적인 컴퓨터 위에, OS를 포함한 가상화 소프트웨어를 두는 방식
+     - Ex) 호스트 머신은 Window인데, Window에서 Linux를 실행
+     - Ex) 호스트 머신은 Mac인데, Mac에서 Window를 실행
+   - GCP의 Compute Engine 또는 AWS EC2가 이런 개념을 활용
+     - 클라우드 회사에서 미리 만든 이미지를 바탕으로, Computing 서비스를 통해 사용자에게 동일한 컴퓨팅 환경을 제공
+   - 그러나 OS 위에 OS를 하나 더 실행시키는 점에서 VM은 굉장히 리소스를 많이 사용
+     - 이런 경우를 "무겁다" 라고 표현
+
+   - Container : VM의 무거움을 크게 덜어주면서, 가상화를 좀 더 경량화된 프로세스의 개념으로 만든 기술
+     - 이 기술의 등장으로 이전보다 빠르고 가볍게 가상화를 구현할 수 있음
+
+   1.3 Docker 소개
+
+   ![Container-Architecture](https://img.vembu.com/wp-content/uploads/2019/02/VM-vs-Containers.png)
+
+   - Container 기술을 쉽게 사용할 수 있도록 나온 도구가 바로 Docker
+
+     ![Docker-Logo_Horizontel_279x131](https://d1.awsstatic.com/acs/characters/Logos/Docker-Logo_Horizontel_279x131.b8a5c41e56b77706656d61080f6a0217a3ba356d.png)
+
+     - 2013년에 오픈소스로 등장
+     - 컨테이너에 기반한 개발과 운영을 매우 빠르게 확장
+
+   - Docker와 비슷한 느낌
+
+     - PC방에서 특정 게임만 설치하고, 고객이 특정 프로그램을 깔아도 재부팅할 때 항상 PC방에서 저장해둔 형태로 다시 복구
+
+       = Docker Image로 만들어두고, 재부팅하면 Docker Image의 상태로 실행
+
+   - **Docker Image**
+
+     - 컨테이너를 실행할 때 사용할 수 있는 "템플릿" (파이썬, CUDA 등 설치 set)
+     - Read Only
+
+   - **Docker Container**
+
+     - Docker Image를 활용해 실행된 인스턴스
+     - Write 가능
+
+   1.4 Docker로 할 수 있는 일
+
+   - 다른 사람이 만든 소프트웨어를 가져와서 바로 사용할 수 있음
+     - 예) MySQL을 Docker로 실행
+     - 예) 다양한 DB를 Docker로 실행
+     - 예) Jupyter Notebook을 Docker로 실행
+   - 다른 사람이 만든 소프트웨어 : **Docker Image**
+     - OS, 설정을 포함한 실행 환경
+     - Linux, Window, Mac 어디에서나 동일하게 실행할 수 있음
+   - 자신만의 이미지를 만들면 다른 사람에게 공유할 수 있음
+     - 원격 저장소에 저장하면 어디서나 사용할 수 있음
+   - 원격 저장소 : Container Registry
+     - 회사에서 서비스를 배포할 때는 원격 저장소에 이미지를 업로드하고, 서버에서 받아서 실행하는 식으로 진행
+     - Ex) dockerhub, gcr, ecr
+
+2. Docker 실습하며 배워보기
+
+   2.1 설치하고 실행하기
+
+   - **docker pull "이미지 이름:태그"**
+     - docker pull mysql:8로 mysql 8 버전의 이미지를 다운
+   - 다운받은 이미지 확인 : **docker images**
+   - **docker run "이미지 이름:태그"**
+     - docker run --name mysql-tutorial -e MYSQL_ROOT_PASSWORD=1234 -d -p 3306:3306 mysql:8
+       - **--name mysql-tutorial** : 컨테이너 이름
+         - 지정하지 않으면 랜덤으로 생성
+       - **-e MYSQL_ROOT_PASSWORD=1234** : 환경변수 설정
+         - 사용하는 이미지에 따라 설정이 다름 
+         - MySQL : 환경변수를 통해 root 계정의 비밀번호를 설정
+       - **-d** : 데몬 (백그라운드) 모드
+         - 컨테이너를 백그라운드 형태로 실행
+         - 이 설정을 하지 않으면, 현재 실행하는 셸 위에서 컨테이너가 실행 컨테이너의 로그를 바로 볼 수 있으나, 컨테이너를 나가면 실행 종료
+         - ref) nohub
+       - **-p 3306:3306** : 포트 지정
+         - 로컬 호스트 포트:컨테이너 포트 형태로, 로컬 포트 3306으로 접근 시 컨테이너 포트 3306으로 연결되도록 설정
+         - mysql은 기본적으로 3306 포트를 통해 통신
+           - 로컬 호스트 : 우리의 컴퓨터
+           - 컨테이너 : 컨테이너 이미지 내부
+     - 실행한 컨테이너는 **docker ps** 명령어로 확인할 수 있음
+     - 작동을 멈춘 컨테이너는 **docker ps -a** 명령어로만 확인할 수 있음
+     - **docker exec -it "컨테이너 이름(혹은 ID)" /bin/bash**
+       - MySQL이 실행되고 있는지 확인하기 위해 컨테이너에 진입
+       - Compute Engine에서 SSH와 접속하는 것과 유사
+     - **mysql -u rooot -p**
+       - MySQL 프로세스로 들어가면 MySQL 쉘 화면이 보임
+     - **docker rm "컨테이너 이름(ID)"**
+       - 멈춘 컨테이너를 삭제 (멈춘 컨테이너만 삭제할 수 있지만 **docker rm "컨테이너 이름(ID)" -f** 로 실행중인 컨테이너도 삭제 가능)
+     - 기본 명령어 정리
+       - docker pull "이미지 이름:태그" : 필요한 이미지 다운
+       - docker images : 다운받은 이미지 목록 확인
+       - docker run "이미지 이름:태그" : 이미지를 기반으로 컨테이너 생성
+       - docker ps : 실행중인 컨테이너 목록 확인
+       - docker exec -it “컨테이너 이름(ID)" /bin/bash : 컨테이너에 진입
+       - docker stop "컨테이너 이름(ID)" : 실행중인 컨테이너를 중지
+       - docker rm "컨테이너 이름(ID)" : 중지된 컨테이너 삭제
+     - docker run 할 때 파일을 공유하는 방법
+       - Volume Mount
+         - Docker Container 내부는 특별한 설정이 없으면 컨테이너를 삭제할 때 파일이 사라짐 (=Host와 Container와 파일 공유가 되지 않음)
+         - 만약 파일을 유지하고 싶다면 Host(우리의 컴퓨터)와 Container의 저장소를 공유해야 함
+       - Volume Mount를 진행하면 Host와 Container의 폴더가 공유됨
+       - -v 옵션을 사용하며, -p(Port)처럼 사용함. -v Host_Folder:Container_Folder
+       - Ex) docker run -it -p 8888:8888 -v /some/host/folder/for/work:/home/jovyan/workspace jupyter/minimal-notebook
+     - Dockerhub에 공개된 모든 이미지를 다운받을 수 있음
+
+   2.2 Docker Image 만들기
+
+   - 간단한 FastAPI 애플리케이션을 실행하는 서버를 Docker Image 생성
+
+   - 정리
+     - 파이썬 환경 및 애플리케이션 코드를 작성
+     - Dockerfile 작성
+       - **FROM**으로 베이스 이미지를 지정
+       - **COPY**로 로컬 내 디렉토리 및 파일을 컨테이너 내부로 복사
+       - **WORKDIR**로 RUN, CMD 등을 실행할 컨테이너 내 디렉토리 지정
+       - **RUN**으로 애플리케이션 실행에 필요한 여러 리눅스 명령어들을 실행
+       - **CMD**로 이미지 실행 시 바로 실행할 명령어를 지정
+     - **docker build “Dockerfile이 위치한 경로” -t "이미지 이름:태그"** 으로 이미지 빌드
+     - **docker run "이미지 이름:태그"**로 빌드한 이미지를 실행
+     - 그 외에 Dockerfile에서 사용하는 것
+       - EXPOSE : 컨테이너 외부에 노출할 포트 지정
+       - ENTRYPOINT : 이미지를 컨테이너로 띄울 때 항상 실행하는 커맨드
+
+- **Special Mission**
+
+  1. **Docker 설치해서 MySQL 설치하기**
+
+  2. **Docker를 사용해 Jupyter Notebook 설치하기**
+
+     - Jupyter notebook Image Pull
+
+       - docker pull jupyter/datascience-notebook
+
+     - Jupyter notebook Container 생성
+
+       - docker run --name jupyter-notebook-container -e GRANT_SUDO=yes --user root -p -d -it jupyter/datascience-notebook
+
+       - docker run
+
+         --name jupyter-notebook-container : 컨테이너 이름
+
+         -e GRANT_SUDO=yes : jupyter notebook 에 root 권한 할당
+
+         --user root : 컨테이너에 root 권한 할당
+
+       ​	-p 8800:8888 : 호스트 포트 번호 : 컨테이너 포트 번호
+
+       ​	-d : 백그라운드 실행
+
+       ​	-it : 컨테이너 생성 시, 명령어 실행
+
+       ​	jupyter/datascience-notebook
+
+### (5강) MLflow
+
+1. MLflow 개념 잡기
+
+   1.1 MLflow란
+
+   - MLflow가 없던 시절
+     - 사람들이 각자 자신의 코드를 Jupyter Notebook에서 작성
+     - 머신러닝 모델 학습시 사용한 Parameter, Metric을 따로 기록
+     - 메모리 초과로 Memory Exceed 오류 발생
+     - 학습하며 생긴 Weight File을 저장해 다른 동료들에게 공유
+     - Weight File 이름으로 Model Versioning을 하거나 아예 Versioning을 하지 않음
+   - MLflow가 해결하려고 했던 Pain Point
+     1. 실험을 추적하기 어렵다
+     2. 코드를 재현하기 어렵다
+     3. 모델을 패키징하고 배포하는 방법이 어렵다
+     4. 모델을 관리하기 위한 중앙 저장소가 없다
+   - MLflow
+     - 머신러닝 실험, 배포를 쉽게 관리할 수 있는 오픈소스
+     - CLI, GUI(웹 인터페이스) 지원
+   - MLflow의 핵심 기능
+     1. **Experiment Management & Tracking**
+        - 머신러닝 관련 "실험"들을 관리하고, 각 실험의 내용들을 기록할 수 있음
+          - 예를 들어, 여러 사람이 하나의 MLflow 서버 위에서 각자 자기 실험을 만들고 공유할 수 있음
+        - 실험을 정의하고, 실험을 실행할 수 있음. 이 실행은 머신러닝 훈련 코드를 실행한 기록
+          - 각 실행에 사용한 소스 코드, 하이퍼 파라미터, Metric, 부산물(모델 Artifact, Chart Image) 등을 저장
+     2. **Model Registry**
+        - MLflow로 실행한 머신러닝 모델을 Model Registry(모델 저장소)에 등록할 수 있음
+        - 모델 저장소에 모델이 저장될 때마다 해당 모델에 버전이 자동으로 올라감(Version 1 -> 2 -> 3..)
+        - Model Registry에 등록된 모델은 다른 사람들에게 쉽게 공유 가능하고, 쉽게 활용할 수 있음
+     3. **Model Serving**
+        - Model Registry에 등록한 모델을 REST API 형태의 서버로 Serving 할 수 있음
+        - Input = Model의 Input
+        - Output = Model의 Output
+        - 직접 Docker Image 만들지 않아도 생성할 수 있음
+   - MLflow Component
+     1. **MLflow Tracking**
+        - 머신러닝 코드 실행, 로깅을 위한 API, UI
+        - MLflow Tracking을 사용해 결과를 Local, Server에 기록해 여러 실행과 비교할 수 있음
+        - 팀에선 다른 사용자의 결과와 비교하며 협업할 수 있음
+     2. **MLflow Project**
+        - 머신러닝 프로젝트 코드를 패키징하기 위한 표준
+        -  Project
+          - 간단하겐 소스 코드가 저장된 폴더
+          - Git Repo
+          - 의존성과 어떻게 실행해야 하는지 저장
+        - MLflow Tracking API를 사용하면 MLflow는 프로젝트 버전을 모든 파라미터와 자동으로 로깅
+     3. **MLflow Model**
+        - 모델은 모델 파일과 코드로 저장
+        - 다양한 플랫폼에 배포할 수 있는 여러 도구 제공
+        - MLflow Tracking API를 사용하면 MLflow는 자동으로 해당 프로젝트에 대한 내용을 사용함
+     4. **MLflow Registry**
+        - MLflow Model의 전체 Lifecycle에서 사용할 수 있는 중앙 모델 저장소
+
+   1.2 MLflow 실습하며 알아보기
+
+   - MLflow 설치
+
+     - pip install mlflow
+
+   - MLflow Tracking
+
+     - Experiment
+
+       - MLflow에서 제일 먼저 Experiment를 생성
+       - 하나의 Experiment는 진행하고 있는 머신러닝 프로젝트 단위로 구성
+       - 정해진 Metric으로 모델을 평가
+       - 하나의 Experiment는 여러 Run(실행)을 가짐
+       - mlflow experiments create --experiment-name my-first-experiment
+       - ls -al을 사용해 폴더 확인하면 mlruns라는 폴더가 생김
+       - Experiment 리스트 확인 : mlflow experiments list
+
+     - Run
+
+       - 하나의 Run은 코드를 1번 실행한 것을 의미
+       - 보통 Run은 모델 학습 코드를 실행
+       - 즉, 한번의 코드 실행 = 하나의 Run 생성
+       - Run을 하면 여러가지 내용이 기록됨
+       - Run에서 로깅하는 것들
+         - Source : 실행한 Project의 이름
+         - Version : 실행 Hash
+         - Start & end time
+         - Parameters : 모델 파라미터
+         - Metrics : 모델의 평가 지표, Metric을 시각화할 수 있음
+         - Tags : 관련된 Tag
+         - Artifacts : 실행 과정에서 생기는 다양한 파일들(이미지, 모델 Pickle 등)
+       - Run으로 실행 : mlflow run logistic_regression --experiment-name my-first-experiment --no-conda
+
+     - UI
+
+       - mlflow ui
+
+     - Experiment / Run 관계
+
+       ![image-20220215224601154](C:\Users\82106\AppData\Roaming\Typora\typora-user-images\image-20220215224601154.png)
+
+   - MLflow Project
+
+     - MLflow를 사용한 코드의 프로젝트 메타 정보 저장
+     - 프로젝트를 어떤 환경에서 어떻게 실행시킬지 정의
+     - 패키지 모듈의 상단에 위치
+
+   - MLflow autolog 
+
+     - Run으로 실행 : mlflow run logistic_regression_with_autolog --experiment-name my-first-experiment --no-conda
+
+     - 주의사항
+
+       - 모든 프레임워크에서 사용 가능한 것은 아님
+
+       - MLflow에서 지원해주는 프레임워크들이 존재
+
+         예) pytorch.nn.Module은 지원하지 않음(반면 Pytorch Lightning은 지원)
+
+   - MLflow Parameter
+
+   - MLflow Hyper Parameter Tuning
+
+     - autolog와 하이퍼 파라미터 튜닝도 같이 할 수 있음
+
+2. MLflow 서버로 배포하기
+
+   2.1 MLflow 아키텍쳐
+
+   ![image-20220215224754845](C:\Users\82106\AppData\Roaming\Typora\typora-user-images\image-20220215224754845.png)
+
+   2.2 Tracking Server와 외부 스토리지 사용하기
+
+   - mlflow server 명령어로 Backend Store URI 지정
+   - mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root $(pwd)/artifacts
+
+   ![image-20220215224911763](C:\Users\82106\AppData\Roaming\Typora\typora-user-images\image-20220215224911763.png)
+
+   2.3 MLflow 실제 활용 사례
+
+   - MLflow Tracking Server는 하나로 통합 운영
+     - Tracking Server를 하나 배포하고, 팀 내 모든 Researcher가 이 Tracking Server에 실험 기록
+       - 배포할 때는 Docker Image, Kubernetes 등에 진행(회사의 인프라에 따라 다름)
+     - 로그나 모델이 한 곳에 저장되므로, 팀 내 모든 실험을 공유할 수 있음
+     - Artifact Storage와 DB 역시 하나로 운영
+       - Artifact Storage는 GCS나 S3 같은 스토리지 이용
+       - DB는 CloudSQL이나 Aurora RDS 같은 DB 이용
+     - 이 두 저장소는 Tracking Server에 의해 관리
+
+- **Special Mission**
+  1. **개인의 Local에 MLflow 환경 설정(pip install)**
+  2. **개인의 Local에 MLflow 환경 설정(Docker)**
+  3. **팀에서 공통적으로 사용할 MLflow Tracking Server GCP에 배포하기**
+
+# 2. 피어세션 정리
+
+- 강의 리뷰 및 QnA
+  - (4강) Docker
+  - (5강) MLflow
+
+# 3. 회고
+
+- 여러 pre-trained 모델을 써보고 좋은 값 찾아보기!
